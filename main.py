@@ -24,3 +24,5 @@ api_router.include_router(code_explainer.router, prefix="/api/v1")
 api_router.include_router(story_generator.router, prefix="/api/v1")
 api_router.include_router(grammer_polisher.router, prefix="/api/v1")
 api_router.include_router(lang_translator.router, prefix="/api/v1")
+
+app.include_router(api_router)
