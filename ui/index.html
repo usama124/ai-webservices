@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aether AI Services</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top left, #1a0b2e, #090a0f);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background glows */
+    body::before, body::after {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      filter: blur(120px);
+      z-index: -1;
+    }
+    body::before { background: #7928ca; top: 10%; left: 15%; }
+    body::after { background: #00dfd8; bottom: 10%; right: 15%; }
+
+    /* Glassmorphism Container */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.125);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 900px;
+      padding: 30px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      background: linear-gradient(45deg, #00dfd8, #7928ca);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Service Navigation */
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 25px;
+    }
+
+    .tab-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #ccc;
+      padding: 10px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+    }
+
+    .tab-btn:hover, .tab-btn.active {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border-color: #00dfd8;
+      box-shadow: 0 0 10px rgba(0, 223, 216, 0.3);
+    }
+
+    /* Form UI */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 15px;
+      color: #fff;
+      font-size: 0.95rem;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #7928ca;
+    }
+
+    .submit-btn {
+      background: linear-gradient(45deg, #7928ca, #00dfd8);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+      align-self: flex-end;
+    }
+
+    .submit-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* Output Section */
+    .output-box {
+      margin-top: 25px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      min-height: 80px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glass-card">
+    <header>
+      <h1>Aether AI Studio</h1>
+      <p style="color: #aaa; font-size: 0.9rem; margin-top: 5px;">Select a service and run prompt queries against your FastAPI LLM server.</p>
+    </header>
+
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="selectService('chat', 'Ask me anything...', 'Send')">Chatbot</button>
+      <button class="tab-btn" onclick="selectService('summarize', 'Paste long text here to summarize...', 'Summarize')">Summarizer</button>
+      <button class="tab-btn" onclick="selectService('story', 'Enter a prompt or genre for a story...', 'Generate Story')">Story Generator</button>
+      <button class="tab-btn" onclick="selectService('explain-code', 'Paste code snippet to explain...', 'Explain Code')">Code Explainer</button>
+      <button class="tab-btn" onclick="selectService('polish', 'Paste draft text to polish grammar and style...', 'Polish Text')">Grammar Polisher</button>
+    </div>
+
+    <div class="input-group">
+      <textarea id="userInput" placeholder="Ask me anything..."></textarea>
+      <button class="submit-btn" id="submitBtn" onclick="sendRequest()">Send</button>
+    </div>
+
+    <div class="output-box" id="output">
+      <span style="color: #666;">Response will appear here...</span>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = "http://localhost:8000/api";
+    let activeEndpoint = "chat";
+
+    function selectService(endpoint, placeholderText, buttonText) {
+      activeEndpoint = endpoint;
+      document.getElementById('userInput').placeholder = placeholderText;
+      document.getElementById('submitBtn').innerText = buttonText;
+
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    async function sendRequest() {
+      const inputField = document.getElementById('userInput');
+      const outputDiv = document.getElementById('output');
+      const promptText = inputField.value.trim();
+
+      if (!promptText) return;
+
+      outputDiv.innerHTML = '<span style="color: #aaa;">Generating response...</span>';
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/${activeEndpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: promptText })
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+        const data = await response.json();
+        outputDiv.innerText = data.result || data.response || JSON.stringify(data, null, 2);
+      } catch (error) {
+        outputDiv.innerHTML = `<span style="color: #ff5555;">Error: Unable to connect to backend server at ${API_BASE_URL}/${activeEndpoint}</span>`;
+      }
+    }
+  </script>
+</body>
+</html>
