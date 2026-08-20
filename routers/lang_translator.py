@@ -4,7 +4,7 @@ from services import llm_services
 router = APIRouter()
 
 
-@router.post("/lang_translator")
+@router.post("/lang-translator")
 async def language_translator(data: dict):
     text = data.get("text", "")
     response = llm_services.translate_text(text)
