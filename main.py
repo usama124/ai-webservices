@@ -1,6 +1,7 @@
-from fastapi import FastAPI, APIRouter
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, APIRouter, Depends
 
+from fastapi.middleware.cors import CORSMiddleware
+from auth import verify_api_key
 from routers import chatbot, summarize, story_generator, code_explainer, grammer_polisher, lang_translator
 
 app = FastAPI(
@@ -17,7 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-api_router = APIRouter()
+api_router = APIRouter(dependencies=[Depends(verify_api_key)])
 api_router.include_router(chatbot.router, prefix="/api/v1")
 api_router.include_router(summarize.router, prefix="/api/v1")
 api_router.include_router(code_explainer.router, prefix="/api/v1")

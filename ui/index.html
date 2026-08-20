@@ -199,7 +199,8 @@
   </div>
 
   <script>
-    const API_BASE_URL = "http://localhost:8008/api/v1";
+    const API_BASE_URL = "https://ai-webservices.vercel.app/api/v1";
+    const API_KEY = "YOUR_BACKEND_API_KEY"; // must match BACKEND_API_KEY in the server's .env
     let activeEndpoint = "chat";
 
     function selectService(endpoint, placeholderText, buttonText) {
@@ -209,7 +210,7 @@
       document.getElementById('userInput').placeholder = placeholderText;
       document.getElementById('submitBtn').innerText = buttonText;
 
-      // Clear input and output boxes on tab change
+      // Clear input and output boxes only when changing tabs
       document.getElementById('userInput').value = '';
       document.getElementById('output').innerHTML = '<span style="color: #666;">Response will appear here...</span>';
 
@@ -238,15 +239,12 @@
         finalPrompt = `Translate the following text into ${targetLang}:\n\n${rawPromptText}`;
       }
 
-      // Clear input box immediately after capturing prompt
-      inputField.value = '';
-
       outputDiv.innerHTML = '<span style="color: #aaa;">Generating response...</span>';
 
       try {
         const response = await fetch(`${API_BASE_URL}/${activeEndpoint}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
           body: JSON.stringify({ text: finalPrompt })
         });
 
