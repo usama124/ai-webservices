@@ -4,8 +4,8 @@ from services import llm_services
 router = APIRouter()
 
 
-@router.post("/summarize")
-async def summarize_text(data: dict):
+@router.post("/polsh_grammer")
+async def grammer_polisher(data: dict):
     text = data.get("text", "")
-    response = llm_services.summarize(text)
+    response = llm_services.polish_text(text)
     return {"output": response}

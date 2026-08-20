@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import chatbot, summarize
+from routers import chatbot, summarize, story_generator, code_explainer, grammer_polisher, lang_translator
 
 app = FastAPI(
     title="AI Webservices",
@@ -20,3 +20,7 @@ app.add_middleware(
 api_router = APIRouter()
 api_router.include_router(chatbot.router, prefix="/api/v1")
 api_router.include_router(summarize.router, prefix="/api/v1")
+api_router.include_router(code_explainer.router, prefix="/api/v1")
+api_router.include_router(story_generator.router, prefix="/api/v1")
+api_router.include_router(grammer_polisher.router, prefix="/api/v1")
+api_router.include_router(lang_translator.router, prefix="/api/v1")

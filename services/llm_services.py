@@ -105,7 +105,7 @@ def explain_code(code_snippet: str) -> str:
     return __llm_call(system_prompt, user_prompt, 0.2, 2048)
 
 
-def translate_text(text: str, target_language: str) -> str:
+def translate_text(text: str) -> str:
     """
     Translates text when the user provides input containing both
     the text and the target language directive (e.g., 'Hello world in Urdu').

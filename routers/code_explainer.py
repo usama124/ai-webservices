@@ -4,8 +4,8 @@ from services import llm_services
 router = APIRouter()
 
 
-@router.post("/summarize")
-async def summarize_text(data: dict):
+@router.post("/code_explainer")
+async def code_explainer(data: dict):
     text = data.get("text", "")
-    response = llm_services.summarize(text)
+    response = llm_services.explain_code(text)
     return {"output": response}
