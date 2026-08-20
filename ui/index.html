@@ -95,6 +95,32 @@
       gap: 15px;
     }
 
+    .lang-input {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .lang-input label {
+      font-size: 0.85rem;
+      color: #aaa;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      padding: 10px 15px;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: #7928ca;
+    }
+
     textarea {
       width: 100%;
       height: 120px;
@@ -154,10 +180,15 @@
       <button class="tab-btn" onclick="selectService('generate-story', 'Enter a prompt or genre for a story...', 'Generate Story')">Story Generator</button>
       <button class="tab-btn" onclick="selectService('code-explainer', 'Paste code snippet to explain...', 'Explain Code')">Code Explainer</button>
       <button class="tab-btn" onclick="selectService('polish-grammer', 'Paste draft text to polish grammar and style...', 'Polish Text')">Grammar Polisher</button>
-      <button class="tab-btn" onclick="selectService('lang-translator', 'Enter text and target language (e.g., Translate to Spanish: Hello world)...', 'Translate')">Language Translator</button>
+      <button class="tab-btn" onclick="selectService('lang-translator', 'Paste text you want to translate...', 'Translate')">Language Translator</button>
     </div>
 
     <div class="input-group">
+      <div id="targetLangContainer" class="lang-input" style="display: none;">
+        <label for="targetLang">Target Language:</label>
+        <input type="text" id="targetLang" placeholder="e.g., Spanish, French, German, Japanese" value="Spanish">
+      </div>
+
       <textarea id="userInput" placeholder="Ask me anything..."></textarea>
       <button class="submit-btn" id="submitBtn" onclick="sendRequest()">Send</button>
     </div>
@@ -173,8 +204,21 @@
 
     function selectService(endpoint, placeholderText, buttonText) {
       activeEndpoint = endpoint;
+
+      // Update UI placeholders and button text
       document.getElementById('userInput').placeholder = placeholderText;
       document.getElementById('submitBtn').innerText = buttonText;
+
+      // Clear input and output boxes on tab change
+      document.getElementById('userInput').value = '';
+      document.getElementById('output').innerHTML = '<span style="color: #666;">Response will appear here...</span>';
+
+      const targetLangContainer = document.getElementById('targetLangContainer');
+      if (endpoint === 'lang-translator') {
+        targetLangContainer.style.display = 'flex';
+      } else {
+        targetLangContainer.style.display = 'none';
+      }
 
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
@@ -183,9 +227,19 @@
     async function sendRequest() {
       const inputField = document.getElementById('userInput');
       const outputDiv = document.getElementById('output');
-      const promptText = inputField.value.trim();
+      const rawPromptText = inputField.value.trim();
 
-      if (!promptText) return;
+      if (!rawPromptText) return;
+
+      let finalPrompt = rawPromptText;
+
+      if (activeEndpoint === 'lang-translator') {
+        const targetLang = document.getElementById('targetLang').value.trim() || 'English';
+        finalPrompt = `Translate the following text into ${targetLang}:\n\n${rawPromptText}`;
+      }
+
+      // Clear input box immediately after capturing prompt
+      inputField.value = '';
 
       outputDiv.innerHTML = '<span style="color: #aaa;">Generating response...</span>';
 
@@ -193,13 +247,13 @@
         const response = await fetch(`${API_BASE_URL}/${activeEndpoint}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: promptText })
+          body: JSON.stringify({ text: finalPrompt })
         });
 
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
         const data = await response.json();
-        outputDiv.innerText = data.output || data.response || JSON.stringify(data, null, 2);
+        outputDiv.innerText = data.output || data.result || data.response || JSON.stringify(data, null, 2);
       } catch (error) {
         outputDiv.innerHTML = `<span style="color: #ff5555;">Error: Unable to connect to backend server at ${API_BASE_URL}/${activeEndpoint}</span>`;
       }
