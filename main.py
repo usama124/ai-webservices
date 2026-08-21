@@ -10,11 +10,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Restrict access strictly to your cPanel domain
+origins = [
+    "https://osamacodes.com",
+    "https://www.osamacodes.com",
+]
+
 # Enable CORS so your Bluehost site can communicate with this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with "https://yourdomain.com" in production
-    allow_methods=["*"],
+    allow_origins=origins,  # Replace with "https://yourdomain.com" in production
+    allow_methods=["POST"],
     allow_headers=["*"],
 )
 
